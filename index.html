@@ -1,0 +1,266 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Game Kéo Thả Phương Tiện Giao Thông</title>
+  <style>
+    :root {
+      --accent: #4caf50;
+      --accent-dark: #388e3c;
+      --panel-bg: #e6f9ee;
+    }
+
+    html, body {
+      margin: 0;
+      padding: 0;
+      width: 100vw;
+      height: 100vh;
+      overflow: hidden;
+    }
+
+    body {
+      font-family: Arial, Helvetica, sans-serif;
+      background: linear-gradient(#cfeefc, #ffffff 60%);
+      display: flex;
+      flex-direction: column;
+      align-items: stretch;
+    }
+
+    header {
+      background: #ff9800;
+      color: white;
+      padding: 14px 10px;
+      text-align: center;
+      font-size: 26px;
+      font-weight: 700;
+      letter-spacing: 1px;
+    }
+
+    #score {
+      margin: 12px auto;
+      background: var(--accent);
+      color: white;
+      padding: 8px 18px;
+      border-radius: 12px;
+      font-size: 20px;
+      box-shadow: 0 3px 8px rgba(0,0,0,0.12);
+    }
+
+    #game {
+      flex: 1;
+      display: flex;
+      justify-content: space-around;
+      flex-wrap: wrap;
+      gap: 24px;
+      padding: 10px 30px;
+      box-sizing: border-box;
+      overflow-y: auto;
+    }
+
+    .drop-zone {
+      width: 360px;
+      height: 360px;
+      border: 4px dashed var(--accent);
+      border-radius: 18px;
+      background: rgba(255,255,255,0.9);
+      box-shadow: 0 6px 14px rgba(0,0,0,0.08);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding: 12px;
+      box-sizing: border-box;
+      transition: transform .18s ease, background .18s;
+    }
+
+    .drop-zone h3 {
+      margin: 4px 0 10px;
+      font-size: 20px;
+      color: #0b3d2e;
+      display:flex;
+      align-items:center;
+      gap:8px;
+    }
+
+    .drop-zone.correct { border-color: #00c853; background: #eaffea; }
+    .drop-zone.wrong { border-color: #e53935; background: #ffecec; }
+
+    .slot {
+      flex: 1;
+      width: 100%;
+      display: grid;
+      grid-auto-flow: row;
+      grid-template-columns: repeat(auto-fill, minmax(70px, 1fr));
+      gap: 6px;
+      align-content: start;
+      justify-items: center;
+      padding: 6px;
+      box-sizing: border-box;
+      overflow-y: auto;
+    }
+
+    #transports {
+      display: flex;
+      flex-wrap: nowrap;
+      gap: 18px;
+      justify-content: center;
+      align-items: flex-end;
+      padding: 18px;
+      overflow-x: auto;
+      width: 100%;
+      box-sizing: border-box;
+    }
+
+    .transport {
+      width: 120px;
+      height: auto;
+      cursor: grab;
+      user-select: none;
+      transition: transform .12s ease, filter 0.3s ease, opacity 0.3s ease;
+    }
+
+    .transport:active { cursor: grabbing; }
+
+    /* 🔹 Khi kéo sai: ảnh sẽ bị mờ và đen trắng */
+    .transport.disabled {
+      filter: grayscale(100%);
+      opacity: 0.4;
+      cursor: not-allowed;
+      transform: none !important;
+    }
+
+    .slot img {
+      width: 72px;
+      height: 72px;
+      object-fit: contain;
+      border-radius: 6px;
+    }
+
+    footer {
+      background: #cfeef6;
+      padding: 18px;
+      box-shadow: 0 -4px 8px rgba(0,0,0,0.04);
+    }
+
+    .guide {
+      max-width: 980px;
+      margin: 0 auto;
+      background: #e8faf0;
+      border: 2px solid var(--accent);
+      color: #0b3d2e;
+      padding: 14px 18px;
+      border-radius: 12px;
+      font-weight: 600;
+      line-height: 1.5;
+    }
+
+    @media (max-width: 1280px) {
+      .drop-zone { width: 300px; height: 300px; }
+    }
+
+    @media (max-width: 900px) {
+      .drop-zone { width: 48%; height: 300px; }
+    }
+
+    @media (max-width: 520px) {
+      .drop-zone { width: 100%; height: 260px; }
+      .transport { width: 90px; }
+    }
+  </style>
+</head>
+
+<body>
+  <header>🎮 KÉO THẢ PHƯƠNG TIỆN GIAO THÔNG 🎨</header>
+  <div id="score">Điểm: 0</div>
+
+  <main id="game">
+    <div class="drop-zone" data-type="duongkhong"><h3>✈️ Đường không</h3><div class="slot"></div></div>
+    <div class="drop-zone" data-type="duongbo"><h3>🚗 Đường bộ</h3><div class="slot"></div></div>
+    <div class="drop-zone" data-type="duongthuy"><h3>🚢 Đường thủy</h3><div class="slot"></div></div>
+    <div class="drop-zone" data-type="duongsat"><h3>🚆 Đường sắt</h3><div class="slot"></div></div>
+  </main>
+
+  <div id="transports">
+    <img src="may bay.png" class="transport" draggable="true" data-type="duongkhong" alt="Máy bay">
+    <img src="kinh khi cau.png" class="transport" draggable="true" data-type="duongkhong" alt="Khinh khí cầu">
+
+    <img src="oto con.png" class="transport" draggable="true" data-type="duongbo" alt="Ô tô">
+    <img src="xe may.png" class="transport" draggable="true" data-type="duongbo" alt="Xe máy">
+    <img src="xe dap.png" class="transport" draggable="true" data-type="duongbo" alt="Xe đạp">
+    <img src="xe cuu hoa.png" class="transport" draggable="true" data-type="duongbo" alt="Xe cứu hỏa">
+    <img src="xe cuu thuong.png" class="transport" draggable="true" data-type="duongbo" alt="Xe cứu thương">
+
+    <img src="tau ngam.png" class="transport" draggable="true" data-type="duongthuy" alt="Tàu ngầm">
+    <img src="tau thuy ok1.png" class="transport" draggable="true" data-type="duongthuy" alt="Tàu thủy">
+    <img src="thuyen buom.png" class="transport" draggable="true" data-type="duongthuy" alt="Thuyền buồm">
+
+    <img src="tau hoa.png" class="transport" draggable="true" data-type="duongsat" alt="Tàu hỏa">
+    <img src="tau dien.png" class="transport" draggable="true" data-type="duongsat" alt="Tàu điện">
+  </div>
+
+  <footer>
+    <div class="guide">
+      <strong>🕹️ Hướng dẫn:</strong> Kéo phương tiện vào đúng ô. Nếu thả sai, hình đó sẽ bị ẩn và không thể kéo lại.
+    </div>
+  </footer>
+
+  <audio id="correctSound" src="Dung.mp3"></audio>
+  <audio id="wrongSound" src="Sai.mp3"></audio>
+
+  <script>
+  (function(){
+    const transports = Array.from(document.querySelectorAll('.transport'));
+    const zones = Array.from(document.querySelectorAll('.drop-zone'));
+    const scoreEl = document.getElementById('score');
+    const correctSound = document.getElementById('correctSound');
+    const wrongSound = document.getElementById('wrongSound');
+    let score = 0;
+
+    transports.forEach((img, idx) => {
+      img.dataset.index = idx;
+      img.addEventListener('dragstart', (e) => {
+        if (img.classList.contains('disabled')) {
+          e.preventDefault();
+          return;
+        }
+        e.dataTransfer.setData('text/plain', JSON.stringify({index: idx, type: img.dataset.type}));
+        setTimeout(()=> img.classList.add('dragging'), 0);
+      });
+      img.addEventListener('dragend', ()=> img.classList.remove('dragging'));
+    });
+
+    zones.forEach(zone => {
+      zone.addEventListener('dragover', e => e.preventDefault());
+      zone.addEventListener('drop', (e) => {
+        e.preventDefault();
+        const raw = e.dataTransfer.getData('text/plain');
+        let payload = null;
+        try { payload = JSON.parse(raw); } catch(err){ return; }
+        if (!payload) return;
+        const dragged = transports[payload.index];
+        if (!dragged) return;
+
+        if (payload.type === zone.dataset.type && dragged.dataset.placed !== "true") {
+          const slot = zone.querySelector('.slot');
+          slot.appendChild(dragged);
+          dragged.dataset.placed = "true";
+          dragged.draggable = false;
+          dragged.style.cursor = 'default';
+          score++;
+          scoreEl.textContent = `Điểm: ${score}`;
+          correctSound.play().catch(()=>{});
+        } else {
+          wrongSound.play().catch(()=>{});
+          zone.classList.add('wrong');
+          setTimeout(()=> zone.classList.remove('wrong'), 600);
+
+          // ❌ Làm mờ, đen trắng và vô hiệu hóa ảnh sai
+          dragged.classList.add('disabled');
+          dragged.draggable = false;
+        }
+      });
+    });
+  })();
+  </script>
+</body>
+</html>
