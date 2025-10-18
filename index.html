@@ -1,308 +1,370 @@
 <!DOCTYPE html>
 <html lang="vi">
 <head>
-  <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Game Kéo Thả Phương Tiện Giao Thông</title>
-  <style>
-    :root {
-      --accent: #4caf50;
-      --accent-dark: #388e3c;
-      --panel-bg: #e6f9ee;
-    }
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Game Kéo Thả Phương Tiện Giao Thông</title>
+    <style>
+        :root {
+            --accent: #4caf50;
+            --accent-dark: #388e3c;
+            --panel-bg: #e6f9ee;
+        }
 
-    html, body {
-      margin: 0;
-      padding: 0;
-      width: 100vw;
-      height: 100vh;
-      overflow: hidden;
-    }
+        html, body {
+            margin: 0;
+            padding: 0;
+            width: 100vw;
+            height: 100vh;
+            overflow: hidden;
+        }
 
-    body {
-      font-family: Arial, Helvetica, sans-serif;
-      background: linear-gradient(#cfeefc, #ffffff 60%);
-      display: flex;
-      flex-direction: column;
-      align-items: stretch;
-    }
+        body {
+            font-family: Arial, Helvetica, sans-serif;
+            background: linear-gradient(#cfeefc, #ffffff 60%);
+            display: flex;
+            flex-direction: column;
+            align-items: stretch;
+        }
 
-    header {
-      background: #ff9800;
-      color: white;
-      padding: 14px 10px;
-      text-align: center;
-      font-size: 26px;
-      font-weight: 700;
-      letter-spacing: 1px;
-    }
+        header {
+            background: #ff9800;
+            color: white;
+            padding: 14px 10px;
+            text-align: center;
+            font-size: 26px;
+            font-weight: 700;
+            letter-spacing: 1px;
+        }
 
-    #score {
-      margin: 12px auto;
-      background: var(--accent);
-      color: white;
-      padding: 8px 18px;
-      border-radius: 12px;
-      font-size: 20px;
-      box-shadow: 0 3px 8px rgba(0,0,0,0.12);
-    }
+        /* CSS cho Game Info và Timer */
+        #game-info {
+            display: flex;
+            justify-content: center;
+            gap: 20px;
+            margin: 12px auto;
+        }
 
-    #game {
-      flex: 1;
-      display: flex;
-      justify-content: space-around;
-      flex-wrap: wrap;
-      gap: 24px;
-      padding: 10px 30px;
-      box-sizing: border-box;
-      overflow-y: auto;
-    }
+        #score, #timer {
+            background: var(--accent);
+            color: white;
+            padding: 8px 18px;
+            border-radius: 12px;
+            font-size: 20px;
+            box-shadow: 0 3px 8px rgba(0,0,0,0.12);
+            min-width: 150px; 
+            text-align: center;
+        }
+        /* Hết CSS mới */
 
-    .drop-zone {
-      width: 360px;
-      height: 360px;
-      border: 4px dashed var(--accent);
-      border-radius: 18px;
-      background: rgba(255,255,255,0.9);
-      box-shadow: 0 6px 14px rgba(0,0,0,0.08);
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      padding: 12px;
-      box-sizing: border-box;
-      transition: transform .18s ease, background .18s;
-    }
 
-    .drop-zone h3 {
-      margin: 4px 0 10px;
-      font-size: 20px;
-      color: #0b3d2e;
-      display:flex;
-      align-items:center;
-      gap:8px;
-    }
+        #game {
+            flex: 1;
+            display: flex;
+            justify-content: space-around;
+            flex-wrap: wrap;
+            gap: 24px;
+            padding: 10px 30px;
+            box-sizing: border-box;
+            overflow-y: auto;
+        }
 
-    .drop-zone.correct { border-color: #00c853; background: #eaffea; }
-    .drop-zone.wrong { border-color: #e53935; background: #ffecec; }
+        .drop-zone {
+            width: 360px;
+            height: 360px;
+            border: 4px dashed var(--accent);
+            border-radius: 18px;
+            background: rgba(255,255,255,0.9);
+            box-shadow: 0 6px 14px rgba(0,0,0,0.08);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 12px;
+            box-sizing: border-box;
+            transition: transform .18s ease, background .18s;
+        }
 
-    .slot {
-      flex: 1;
-      width: 100%;
-      display: grid;
-      grid-auto-flow: row;
-      grid-template-columns: repeat(auto-fill, minmax(70px, 1fr));
-      gap: 6px;
-      align-content: start;
-      justify-items: center;
-      padding: 6px;
-      box-sizing: border-box;
-      overflow-y: auto;
-    }
+        .drop-zone h3 {
+            margin: 4px 0 10px;
+            font-size: 20px;
+            color: #0b3d2e;
+            display:flex;
+            align-items:center;
+            gap:8px;
+        }
 
-    #transports {
-      display: flex;
-      flex-wrap: nowrap;
-      gap: 18px;
-      justify-content: center;
-      align-items: flex-end;
-      padding: 18px;
-      overflow-x: auto;
-      width: 100%;
-      box-sizing: border-box;
-    }
+        .drop-zone.correct { border-color: #00c853; background: #eaffea; }
+        .drop-zone.wrong { border-color: #e53935; background: #ffecec; }
 
-    .transport {
-      width: 120px;
-      height: auto;
-      cursor: grab;
-      user-select: none;
-      transition: transform .12s ease, filter 0.3s ease, opacity 0.3s ease;
-    }
+        .slot {
+            flex: 1;
+            width: 100%;
+            display: grid;
+            grid-auto-flow: row;
+            grid-template-columns: repeat(auto-fill, minmax(70px, 1fr));
+            gap: 6px;
+            align-content: start;
+            justify-items: center;
+            padding: 6px;
+            box-sizing: border-box;
+            overflow-y: auto;
+        }
 
-    .transport:active { cursor: grabbing; }
+        #transports {
+            display: flex;
+            flex-wrap: nowrap;
+            gap: 18px;
+            justify-content: center;
+            align-items: flex-end;
+            padding: 18px;
+            overflow-x: auto;
+            width: 100%;
+            box-sizing: border-box;
+        }
 
-    /* 🔹 Khi kéo sai: ảnh sẽ bị mờ và đen trắng */
-    .transport.disabled {
-      filter: grayscale(100%);
-      opacity: 0.4;
-      cursor: not-allowed;
-      transform: none !important;
-    }
+        .transport {
+            width: 120px;
+            height: auto;
+            cursor: grab;
+            user-select: none;
+            transition: transform .12s ease, filter 0.3s ease, opacity 0.3s ease;
+        }
 
-    .slot img {
-      width: 72px;
-      height: 72px;
-      object-fit: contain;
-      border-radius: 6px;
-    }
+        .transport:active { cursor: grabbing; }
 
-    footer {
-      background: #cfeef6;
-      padding: 18px;
-      box-shadow: 0 -4px 8px rgba(0,0,0,0.04);
-    }
+        .transport.disabled {
+            filter: grayscale(100%);
+            opacity: 0.4;
+            cursor: not-allowed;
+            transform: none !important;
+        }
 
-    .guide {
-      max-width: 980px;
-      margin: 0 auto;
-      background: #e8faf0;
-      border: 2px solid var(--accent);
-      color: #0b3d2e;
-      padding: 14px 18px;
-      border-radius: 12px;
-      font-weight: 600;
-      line-height: 1.5;
-    }
+        .slot img {
+            width: 72px;
+            height: 72px;
+            object-fit: contain;
+            border-radius: 6px;
+        }
 
-    @media (max-width: 1280px) {
-      .drop-zone { width: 300px; height: 300px; }
-    }
+        footer {
+            background: #cfeef6;
+            padding: 18px;
+            box-shadow: 0 -4px 8px rgba(0,0,0,0.04);
+        }
 
-    @media (max-width: 900px) {
-      .drop-zone { width: 48%; height: 300px; }
-    }
+        .guide {
+            max-width: 980px;
+            margin: 0 auto;
+            background: #e8faf0;
+            border: 2px solid var(--accent);
+            color: #0b3d2e;
+            padding: 14px 18px;
+            border-radius: 12px;
+            font-weight: 600;
+            line-height: 1.5;
+        }
 
-    @media (max-width: 520px) {
-      .drop-zone { width: 100%; height: 260px; }
-      .transport { width: 90px; }
-    }
+        @media (max-width: 1280px) {
+            .drop-zone { width: 300px; height: 300px; }
+        }
 
-    
-  </style>
+        @media (max-width: 900px) {
+            .drop-zone { width: 48%; height: 300px; }
+        }
+
+        @media (max-width: 520px) {
+            .drop-zone { width: 100%; height: 260px; }
+            .transport { width: 90px; }
+        }
+    </style>
 </head>
 
 <body>
-  <header>🎮 KÉO THẢ PHƯƠNG TIỆN GIAO THÔNG 🎨</header>
-  <div id="score">Điểm: 0</div>
-
-  <main id="game">
-    <div class="drop-zone" data-type="duongkhong"><h3>✈️ Đường không</h3><div class="slot"></div></div>
-    <div class="drop-zone" data-type="duongbo"><h3>🚗 Đường bộ</h3><div class="slot"></div></div>
-    <div class="drop-zone" data-type="duongthuy"><h3>🚢 Đường thủy</h3><div class="slot"></div></div>
-    <div class="drop-zone" data-type="duongsat"><h3>🚆 Đường sắt</h3><div class="slot"></div></div>
-  </main>
-
-  <div id="transports">
-    <img src="may bay.png" class="transport" draggable="true" data-type="duongkhong" alt="Máy bay">
-    <img src="kinh khi cau.png" class="transport" draggable="true" data-type="duongkhong" alt="Khinh khí cầu">
-
-    <img src="oto con.png" class="transport" draggable="true" data-type="duongbo" alt="Ô tô">
-    <img src="xe may.png" class="transport" draggable="true" data-type="duongbo" alt="Xe máy">
-    <img src="xe dap.png" class="transport" draggable="true" data-type="duongbo" alt="Xe đạp">
-    <img src="xe cuu hoa.png" class="transport" draggable="true" data-type="duongbo" alt="Xe cứu hỏa">
-    <img src="xe cuu thuong.png" class="transport" draggable="true" data-type="duongbo" alt="Xe cứu thương">
-
-    <img src="tau ngam.png" class="transport" draggable="true" data-type="duongthuy" alt="Tàu ngầm">
-    <img src="tau thuy ok1.png" class="transport" draggable="true" data-type="duongthuy" alt="Tàu thủy">
-    <img src="thuyen buom.png" class="transport" draggable="true" data-type="duongthuy" alt="Thuyền buồm">
-
-    <img src="tau hoa.png" class="transport" draggable="true" data-type="duongsat" alt="Tàu hỏa">
-    <img src="tau dien.png" class="transport" draggable="true" data-type="duongsat" alt="Tàu điện">
-  </div>
-
-  <footer>
-    <div class="guide">
-      <strong>🕹️ Hướng dẫn:</strong> Kéo phương tiện vào đúng ô. Nếu thả sai, hình đó sẽ bị ẩn và không thể kéo lại.
+    <header>🎮 KÉO THẢ PHƯƠNG TIỆN GIAO THÔNG 🎨</header>
+    <div id="game-info">
+        <div id="score">Điểm: 0</div>
+        <div id="timer">Thời gian: 00:00</div>
     </div>
-  </footer>
 
-  <audio id="correctSound" src="Dung.mp3"></audio>
-  <audio id="wrongSound" src="Sai.mp3"></audio>
+    <main id="game">
+        <div class="drop-zone" data-type="duongkhong"><h3>✈️ Đường không</h3><div class="slot"></div></div>
+        <div class="drop-zone" data-type="duongbo"><h3>🚗 Đường bộ</h3><div class="slot"></div></div>
+        <div class="drop-zone" data-type="duongthuy"><h3>🚢 Đường thủy</h3><div class="slot"></div></div>
+        <div class="drop-zone" data-type="duongsat"><h3>🚆 Đường sắt</h3><div class="slot"></div></div>
+    </main>
 
-  <script>
-  (function(){
-    const transportsContainer = document.getElementById('transports');
-    const transports = Array.from(document.querySelectorAll('.transport'));
-    const zones = Array.from(document.querySelectorAll('.drop-zone'));
-    const scoreEl = document.getElementById('score');
-    const correctSound = document.getElementById('correctSound');
-    const wrongSound = document.getElementById('wrongSound');
-    let score = 0;
+    <div id="transports">
+        <img src="may bay.png" class="transport" draggable="true" data-type="duongkhong" alt="Máy bay">
+        <img src="kinh khi cau.png" class="transport" draggable="true" data-type="duongkhong" alt="Khinh khí cầu">
 
-    /**
-     * Hàm xáo trộn mảng (Thuật toán Fisher-Yates)
-     * @param {Array} array Mảng cần xáo trộn
-     */
-    function shuffleArray(array) {
-      for (let i = array.length - 1; i > 0; i--) {
-        const j = Math.floor(Math.random() * (i + 1));
-        [array[i], array[j]] = [array[j], array[i]];
-      }
-    }
+        <img src="oto con.png" class="transport" draggable="true" data-type="duongbo" alt="Ô tô">
+        <img src="xe may.png" class="transport" draggable="true" data-type="duongbo" alt="Xe máy">
+        <img src="xe dap.png" class="transport" draggable="true" data-type="duongbo" alt="Xe đạp">
+        <img src="xe cuu hoa.png" class="transport" draggable="true" data-type="duongbo" alt="Xe cứu hỏa">
+        <img src="xe cuu thuong.png" class="transport" draggable="true" data-type="duongbo" alt="Xe cứu thương">
 
-    // 1. 🎲 Xáo trộn thứ tự các hình ảnh
-    shuffleArray(transports);
+        <img src="tau ngam.png" class="transport" draggable="true" data-type="duongthuy" alt="Tàu ngầm">
+        <img src="tau thuy ok1.png" class="transport" draggable="true" data-type="duongthuy" alt="Tàu thủy">
+        <img src="thuyen buom.png" class="transport" draggable="true" data-type="duongthuy" alt="Thuyền buồm">
 
-    // 2. 🔄 Chèn các hình ảnh đã xáo trộn vào lại khu vực chứa
-    // Việc này đảm bảo thứ tự mới được hiển thị
-    transports.forEach(img => {
-      transportsContainer.appendChild(img);
-    });
+        <img src="tau hoa.png" class="transport" draggable="true" data-type="duongsat" alt="Tàu hỏa">
+        <img src="tau dien.png" class="transport" draggable="true" data-type="duongsat" alt="Tàu điện">
+    </div>
 
-    // 3. ✨ Cập nhật lại data-index và gắn lại các sự kiện
-    transports.forEach((img, idx) => {
-      img.dataset.index = idx; // Cập nhật index mới sau khi xáo trộn
-      
-      // Xóa các sự kiện cũ trước khi thêm sự kiện mới để tránh trùng lặp
-      // (Tuy nhiên, ở đây ta chỉ khởi tạo 1 lần nên không cần thiết, 
-      // nhưng tốt cho việc tái sử dụng code trong môi trường phức tạp hơn)
-      
-      img.addEventListener('dragstart', (e) => {
-        if (img.classList.contains('disabled')) {
-          e.preventDefault();
-          return;
+    <footer>
+        <div class="guide">
+            <strong>🕹️ Hướng dẫn:</strong> Kéo phương tiện vào đúng ô. Nếu thả sai, hình đó sẽ bị ẩn và không thể kéo lại.
+        </div>
+    </footer>
+
+    <audio id="correctSound" src="Dung.mp3"></audio>
+    <audio id="wrongSound" src="Sai.mp3"></audio>
+
+    <script>
+    (function(){
+        const transportsContainer = document.getElementById('transports');
+        const transports = Array.from(document.querySelectorAll('.transport'));
+        const zones = Array.from(document.querySelectorAll('.drop-zone'));
+        const scoreEl = document.getElementById('score');
+        const timerEl = document.getElementById('timer');
+        const correctSound = document.getElementById('correctSound');
+        const wrongSound = document.getElementById('wrongSound');
+        
+        let score = 0;
+        const totalTransports = transports.length;
+        
+        let time = 0;
+        let timerInterval;
+        let completedItems = 0; // 💡 ĐẾM SỐ PHƯƠNG TIỆN ĐÃ XỬ LÝ (ĐÚNG HOẶC SAI)
+
+        // --- CHỨC NĂNG ĐỒNG HỒ ---
+
+        function formatTime(totalSeconds) {
+            const minutes = Math.floor(totalSeconds / 60);
+            const seconds = totalSeconds % 60;
+            const paddedMinutes = String(minutes).padStart(2, '0');
+            const paddedSeconds = String(seconds).padStart(2, '0');
+            return `${paddedMinutes}:${paddedSeconds}`;
         }
-        e.dataTransfer.setData('text/plain', JSON.stringify({index: idx, type: img.dataset.type}));
-        setTimeout(()=> img.classList.add('dragging'), 0);
-      });
-      img.addEventListener('dragend', ()=> img.classList.remove('dragging'));
-    });
 
-    zones.forEach(zone => {
-      zone.addEventListener('dragover', e => e.preventDefault());
-      zone.addEventListener('drop', (e) => {
-        e.preventDefault();
-        const raw = e.dataTransfer.getData('text/plain');
-        let payload = null;
-        try { payload = JSON.parse(raw); } catch(err){ return; }
-        if (!payload) return;
-        const dragged = transports[payload.index];
-        if (!dragged) return;
-
-        if (payload.type === zone.dataset.type && dragged.dataset.placed !== "true") {
-          const slot = zone.querySelector('.slot');
-          
-          // Thêm ảnh vào slot và đổi kích thước/thuộc tính
-          const placedImage = dragged.cloneNode(true);
-          placedImage.classList.remove('transport'); // Xóa class transport
-          placedImage.style.width = '72px';
-          placedImage.style.height = '72px';
-          placedImage.draggable = false;
-          placedImage.dataset.placed = "true";
-          slot.appendChild(placedImage);
-          
-          // Ẩn ảnh gốc trong khu vực transports
-          dragged.style.display = 'none';
-          dragged.dataset.placed = "true";
-          
-          score++;
-          scoreEl.textContent = `Điểm: ${score}`;
-          correctSound.play().catch(()=>{});
-        } else {
-          wrongSound.play().catch(()=>{});
-          zone.classList.add('wrong');
-          setTimeout(()=> zone.classList.remove('wrong'), 600);
-
-          // ❌ Làm mờ, đen trắng và vô hiệu hóa ảnh sai
-          dragged.classList.add('disabled');
-          dragged.draggable = false;
-          // Loại bỏ hiệu ứng kéo của ảnh sai để tránh bị kéo lại sau này
-          dragged.removeEventListener('dragstart', dragged.dragstartHandler);
-          dragged.removeEventListener('dragend', dragged.dragendHandler);
+        function startTimer() {
+            timerInterval = setInterval(() => {
+                time++;
+                timerEl.textContent = `Thời gian: ${formatTime(time)}`;
+            }, 1000);
         }
-      });
-    });
-  })();
-  </script>
+
+        function stopTimer() {
+            clearInterval(timerInterval);
+        }
+
+        // --- HÀM KẾT THÚC GAME VÀ THÔNG BÁO ---
+        function endGame() {
+            stopTimer();
+            const finalMessage = score === totalTransports 
+                ? `🎉 CHÚC MỪNG! Bạn đạt điểm tối đa!`
+                : `✅ TRÒ CHƠI KẾT THÚC!`;
+                
+            setTimeout(() => {
+                alert(`${finalMessage}
+Điểm số: ${score}/${totalTransports}
+Thời gian hoàn thành: ${formatTime(time)}`);
+            }, 100);
+        }
+
+        // Bắt đầu đồng hồ ngay khi trò chơi tải
+        startTimer();
+
+        // --- CHỨC NĂNG XÁO TRỘN ẢNH VÀ KÉO THẢ ---
+
+        /**
+         * Hàm xáo trộn mảng (Thuật toán Fisher-Yates)
+         */
+        function shuffleArray(array) {
+            for (let i = array.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [array[i], array[j]] = [array[j], array[i]];
+            }
+        }
+
+        // 1. 🎲 Xáo trộn thứ tự các hình ảnh
+        shuffleArray(transports);
+
+        // 2. 🔄 Chèn các hình ảnh đã xáo trộn vào lại khu vực chứa
+        transports.forEach(img => {
+            transportsContainer.appendChild(img);
+        });
+
+        // 3. ✨ Cập nhật lại data-index và gắn lại các sự kiện
+        transports.forEach((img, idx) => {
+            img.dataset.index = idx;
+            
+            img.addEventListener('dragstart', (e) => {
+                if (img.classList.contains('disabled') || img.dataset.placed === "true") {
+                    e.preventDefault();
+                    return;
+                }
+                e.dataTransfer.setData('text/plain', JSON.stringify({index: idx, type: img.dataset.type}));
+                setTimeout(()=> img.classList.add('dragging'), 0);
+            });
+            img.addEventListener('dragend', ()=> img.classList.remove('dragging'));
+        });
+
+        zones.forEach(zone => {
+            zone.addEventListener('dragover', e => e.preventDefault());
+            zone.addEventListener('drop', (e) => {
+                e.preventDefault();
+                const raw = e.dataTransfer.getData('text/plain');
+                let payload = null;
+                try { payload = JSON.parse(raw); } catch(err){ return; }
+                if (!payload) return;
+                const dragged = transports[payload.index];
+                if (!dragged) return;
+
+                if (payload.type === zone.dataset.type && dragged.dataset.placed !== "true") {
+                    // --- KÉO ĐÚNG ---
+                    const slot = zone.querySelector('.slot');
+                    
+                    const placedImage = dragged.cloneNode(true);
+                    placedImage.classList.remove('transport');
+                    placedImage.style.width = '72px';
+                    placedImage.style.height = '72px';
+                    placedImage.draggable = false;
+                    slot.appendChild(placedImage);
+                    
+                    dragged.style.display = 'none';
+                    dragged.dataset.placed = "true";
+                    
+                    score++;
+                    completedItems++; // Tăng đếm đã xử lý
+                    scoreEl.textContent = `Điểm: ${score}`;
+                    correctSound.play().catch(()=>{});
+
+                    // 🏁 KIỂM TRA ĐIỀU KIỆN KẾT THÚC GAME
+                    if (completedItems === totalTransports) {
+                        endGame();
+                    }
+
+                } else {
+                    // --- KÉO SAI ---
+                    wrongSound.play().catch(()=>{});
+                    zone.classList.add('wrong');
+                    setTimeout(()=> zone.classList.remove('wrong'), 600);
+
+                    // ❌ Vô hiệu hóa ảnh sai
+                    dragged.classList.add('disabled');
+                    dragged.draggable = false;
+                    
+                    completedItems++; // Tăng đếm đã xử lý
+
+                    // 🏁 KIỂM TRA ĐIỀU KIỆN KẾT THÚC GAME
+                    if (completedItems === totalTransports) {
+                        endGame();
+                    }
+                }
+            });
+        });
+    })();
+    </script>
 </body>
 </html>
