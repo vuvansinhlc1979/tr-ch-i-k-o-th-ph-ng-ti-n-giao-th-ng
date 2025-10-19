@@ -147,8 +147,8 @@ footer {
     line-height: 1.5;
 }
 
-/* ---------------- MÀN HÌNH GIỚI THIỆU (được làm đẹp hơn) ---------------- */
-#start-overlay {
+/* ---------------- MÀN HÌNH GIỚI THIỆU ---------------- */
+#start-overlay, #result-overlay {
     position: fixed;
     inset: 0;
     background: linear-gradient(145deg, #fff8e1, #ffe0b2);
@@ -162,8 +162,8 @@ footer {
     transition: opacity 1s ease, transform 1s ease;
 }
 
-/* Khung chính nổi bật, có hiệu ứng 3D */
-#intro-box {
+/* Khung nổi bật */
+#intro-box, #result-box {
     background: linear-gradient(145deg, #ffffff, #fff3cd);
     border: 4px solid #ff9800;
     border-radius: 24px;
@@ -173,31 +173,29 @@ footer {
     transform: perspective(800px) rotateX(5deg);
     animation: glow 2s infinite alternate;
 }
-
 @keyframes glow {
     from { box-shadow: 0 12px 30px rgba(0,0,0,0.3), inset 0 0 15px rgba(255, 152, 0, 0.4); }
     to { box-shadow: 0 16px 40px rgba(0,0,0,0.4), inset 0 0 25px rgba(255, 171, 64, 0.7); }
 }
-
-#start-overlay.hidden {
+#start-overlay.hidden, #result-overlay.hidden {
     opacity: 0;
     transform: perspective(800px) rotateY(90deg);
     pointer-events: none;
 }
-#start-overlay h1 {
+#start-overlay h1, #result-overlay h1 {
     font-size: 40px;
     color: #ff5722;
     text-shadow: 2px 2px 6px rgba(0,0,0,0.2);
     margin-bottom: 20px;
 }
-#start-overlay p {
+#start-overlay p, #result-overlay p {
     font-size: 20px;
     color: #333;
     max-width: 600px;
     line-height: 1.6;
     margin-bottom: 30px;
 }
-#start-btn {
+#start-btn, #replay-btn {
     background: linear-gradient(135deg, #4caf50, #2e7d32);
     color: white;
     font-size: 22px;
@@ -208,10 +206,11 @@ footer {
     box-shadow: 0 8px 20px rgba(0,0,0,0.3);
     transition: transform 0.3s ease, box-shadow 0.3s ease;
 }
-#start-btn:hover {
+#start-btn:hover, #replay-btn:hover {
     transform: scale(1.1);
     box-shadow: 0 12px 30px rgba(0,0,0,0.4);
 }
+.hidden { display: none !important; }
 
 @media (max-width: 900px) {
     .drop-zone { width: 48%; height: 300px; }
@@ -228,13 +227,21 @@ footer {
 <div id="start-overlay">
   <div id="intro-box">
     <h1>🎮 HƯỚNG DẪN TRÒ CHƠI 🎯</h1>
-    <p>
-      Chào mừng các bạn đến với trò chơi <strong>"Kéo thả phương tiện giao thông"</strong>!<br><br>
+    <p>Chào mừng các bạn đến với trò chơi <strong>"Kéo thả phương tiện giao thông"</strong>!<br><br>
       🚗 Hãy kéo từng phương tiện vào đúng loại đường tương ứng (đường bộ, đường thủy, đường không, đường sắt).<br>
       ✅ Mỗi hình đúng bạn sẽ được điểm thưởng — sai thì hình đó sẽ biến mất!<br><br>
       Khi đã sẵn sàng, nhấn <strong>"BẮT ĐẦU TRÒ CHƠI"</strong> để bắt đầu nhé!
     </p>
     <button id="start-btn">🚀 BẮT ĐẦU TRÒ CHƠI</button>
+  </div>
+</div>
+
+<!-- PHẦN KẾT QUẢ -->
+<div id="result-overlay" class="hidden">
+  <div id="result-box">
+    <h1>🏁 KẾT QUẢ TRÒ CHƠI 🏆</h1>
+    <p id="result-message"></p>
+    <button id="replay-btn">🔁 CHƠI LẠI</button>
   </div>
 </div>
 
@@ -278,9 +285,12 @@ footer {
 <script>
 (function(){
     const overlay = document.getElementById('start-overlay');
+    const resultOverlay = document.getElementById('result-overlay');
     const startBtn = document.getElementById('start-btn');
+    const replayBtn = document.getElementById('replay-btn');
+    const resultMessage = document.getElementById('result-message');
 
-    // Ẩn toàn bộ nội dung trò chơi trước
+    // Ẩn trò chơi trước
     document.querySelectorAll('header, #game-info, main, #transports, footer').forEach(el => {
         el.style.display = 'none';
     });
@@ -295,6 +305,8 @@ footer {
             startGame();
         }, 1000);
     });
+
+    replayBtn.addEventListener('click', () => location.reload());
 
     function startGame() {
         const transportsContainer = document.getElementById('transports');
@@ -330,12 +342,22 @@ footer {
 
         function endGame() {
             stopTimer();
-            const finalMessage = score === totalTransports 
-                ? `🎉 CHÚC MỪNG! Bạn đạt điểm tối đa!`
-                : `✅ TRÒ CHƠI KẾT THÚC!`;
-            setTimeout(() => {
-                alert(`${finalMessage}\n\nĐiểm số: ${score}/${totalTransports}\nThời gian: ${formatTime(time)}`);
-            }, 200);
+            let encouragement;
+            if (score === totalTransports) {
+                encouragement = "🎉 Xuất sắc! Bạn là chuyên gia giao thông rồi đó!";
+            } else if (score > totalTransports / 2) {
+                encouragement = "👏 Rất tốt! Bạn hiểu biết khá rõ về phương tiện giao thông!";
+            } else {
+                encouragement = "💪 Hãy cố gắng hơn ở lần sau nhé!";
+            }
+
+            resultMessage.innerHTML = `
+                <strong>Điểm số:</strong> ${score}/${totalTransports}<br>
+                <strong>Thời gian:</strong> ${formatTime(time)}<br><br>
+                ${encouragement}
+            `;
+
+            resultOverlay.classList.remove('hidden');
         }
 
         startTimer();
