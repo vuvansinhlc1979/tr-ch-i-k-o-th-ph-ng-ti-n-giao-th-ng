@@ -146,37 +146,22 @@
             border-radius: 6px;
         }
 
-        /* CSS cho Nút Gửi Kết Quả */
-        #controls {
-            background: #e8faf0;
+        footer {
+            background: #cfeef6;
             padding: 18px;
             box-shadow: 0 -4px 8px rgba(0,0,0,0.04);
-            text-align: center;
-            border-top: 2px solid var(--accent);
         }
-        #submitBtn {
-            padding: 12px 25px; 
-            font-size: 18px; 
-            cursor: pointer; 
-            background: var(--accent); 
-            color: white; 
-            border: none; 
-            border-radius: 8px; 
-            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
-            transition: background-color 0.2s;
-        }
-        #submitBtn:hover:not(:disabled) {
-            background: var(--accent-dark);
-        }
-        #submitBtn:disabled {
-            cursor: not-allowed;
-            opacity: 0.7;
-        }
-        /* Hết CSS mới */
-        
-        footer {
-            /* Ẩn footer hướng dẫn cũ (không cần nữa) */
-            display: none; 
+
+        .guide {
+            max-width: 980px;
+            margin: 0 auto;
+            background: #e8faf0;
+            border: 2px solid var(--accent);
+            color: #0b3d2e;
+            padding: 14px 18px;
+            border-radius: 12px;
+            font-weight: 600;
+            line-height: 1.5;
         }
 
         @media (max-width: 1280px) {
@@ -226,25 +211,22 @@
         <img src="tau dien.png" class="transport" draggable="true" data-type="duongsat" alt="Tàu điện">
     </div>
 
-    <div id="controls">
-        <button id="submitBtn">Gửi Kết Quả</button>
-    </div>
+    <footer>
+        <div class="guide">
+            <strong>🕹️ Hướng dẫn:</strong> Kéo phương tiện vào đúng ô. Nếu thả sai, hình đó sẽ bị ẩn và không thể kéo lại.
+        </div>
+    </footer>
 
     <audio id="correctSound" src="Dung.mp3"></audio>
     <audio id="wrongSound" src="Sai.mp3"></audio>
 
     <script>
     (function(){
-        // 💡 BƯỚC QUAN TRỌNG: THAY THẾ CHUỖI DƯỚI ĐÂY BẰNG URL WEB APP CỦA BẠN (LẤY Ở bước triển khai Google Script)
-        const WEB_APP_URL = 'https://script.google.com/macros/s/AKfycbyisj0kaTXr3tb4dQ1IVijqDYjEHV4PMvaSple13EBkm69n5TIKQLXNOGKb9J4liPyM/exec'; 
-        // VÍ DỤ: const WEB_APP_URL = 'https://script.google.com/macros/s/AKfycxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/exec';
-
         const transportsContainer = document.getElementById('transports');
         const transports = Array.from(document.querySelectorAll('.transport'));
         const zones = Array.from(document.querySelectorAll('.drop-zone'));
         const scoreEl = document.getElementById('score');
         const timerEl = document.getElementById('timer');
-        const submitBtn = document.getElementById('submitBtn');
         const correctSound = document.getElementById('correctSound');
         const wrongSound = document.getElementById('wrongSound');
         
@@ -253,10 +235,9 @@
         
         let time = 0;
         let timerInterval;
-        let completedItems = 0; 
-        let isGameRunning = true; // Cờ kiểm tra game còn đang chạy hay không
+        let completedItems = 0; // 💡 ĐẾM SỐ PHƯƠNG TIỆN ĐÃ XỬ LÝ (ĐÚNG HOẶC SAI)
 
-        // --- CHỨC NĂNG ĐỒNG HỒ & THỜI GIAN ---
+        // --- CHỨC NĂNG ĐỒNG HỒ ---
 
         function formatTime(totalSeconds) {
             const minutes = Math.floor(totalSeconds / 60);
@@ -268,78 +249,34 @@
 
         function startTimer() {
             timerInterval = setInterval(() => {
-                if (isGameRunning) {
-                    time++;
-                    timerEl.textContent = `Thời gian: ${formatTime(time)}`;
-                }
+                time++;
+                timerEl.textContent = `Thời gian: ${formatTime(time)}`;
             }, 1000);
         }
 
         function stopTimer() {
             clearInterval(timerInterval);
-            isGameRunning = false;
         }
 
-        // --- GỬI DỮ LIỆU ĐẾN GOOGLE SHEET ---
-
-        async function sendResults() {
-            stopTimer(); // Đảm bảo đồng hồ dừng
-            
-            const groupName = prompt(`🎉 Trò chơi kết thúc! Vui lòng nhập Tên Nhóm/Tên bạn (Điểm: ${score}/${totalTransports}, Thời gian: ${formatTime(time)}):`);
-            if (!groupName) {
-                isGameRunning = true; // Cho phép chơi tiếp nếu hủy
-                startTimer();
-                return;
-            }
-
-            const payload = {
-                TenNhom: groupName,
-                DiemSo: score, 
-                ThoiGianChoiGiay: time 
-            };
-
-            submitBtn.disabled = true;
-            submitBtn.textContent = '...Đang gửi kết quả...';
-
-            try {
-                const response = await fetch(WEB_APP_URL, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'text/plain;charset=utf-8' }, 
-                    body: JSON.stringify(payload)
-                });
-
-                const result = await response.json();
-
-                if (result.result === 'success') {
-                    alert(`✅ Kết quả đã được gửi thành công!`);
-                    submitBtn.textContent = 'ĐÃ GỬI XONG!';
-                    submitBtn.style.background = '#388e3c'; 
-                } else {
-                    alert(`❌ Lỗi khi gửi kết quả (Server báo lỗi): ${result.message}`);
-                    submitBtn.textContent = 'Gửi Lỗi, Thử Lại';
-                    submitBtn.disabled = false;
-                    isGameRunning = true;
-                    startTimer();
-                }
-
-            } catch (error) {
-                console.error('Lỗi kết nối Google Script:', error);
-                alert('❌ Lỗi kết nối Server. Vui lòng thử lại hoặc báo Giáo viên.');
-                submitBtn.textContent = 'Gửi Lỗi, Thử Lại';
-                submitBtn.disabled = false;
-                isGameRunning = true;
-                startTimer();
-            }
-        }
-        
+        // --- HÀM KẾT THÚC GAME VÀ THÔNG BÁO ---
         function endGame() {
-            // Tắt kéo thả, dừng đồng hồ và gửi kết quả
-            transports.forEach(t => t.draggable = false);
-            sendResults(); 
+            stopTimer();
+            const finalMessage = score === totalTransports 
+                ? `🎉 CHÚC MỪNG! Bạn đạt điểm tối đa!`
+                : `✅ TRÒ CHƠI KẾT THÚC!`;
+                
+            setTimeout(() => {
+                alert(`${finalMessage}
+Điểm số: ${score}/${totalTransports}
+Thời gian hoàn thành: ${formatTime(time)}`);
+            }, 100);
         }
-        
-        // --- CHỨC NĂNG GAME GỐC (Kéo thả, xáo trộn) ---
-        
+
+        // Bắt đầu đồng hồ ngay khi trò chơi tải
+        startTimer();
+
+        // --- CHỨC NĂNG XÁO TRỘN ẢNH VÀ KÉO THẢ ---
+
         /**
          * Hàm xáo trộn mảng (Thuật toán Fisher-Yates)
          */
@@ -350,18 +287,20 @@
             }
         }
 
-        // 1. 🎲 Xáo trộn thứ tự các hình ảnh và chèn lại
+        // 1. 🎲 Xáo trộn thứ tự các hình ảnh
         shuffleArray(transports);
+
+        // 2. 🔄 Chèn các hình ảnh đã xáo trộn vào lại khu vực chứa
         transports.forEach(img => {
             transportsContainer.appendChild(img);
         });
-        
-        // 2. ✨ Cập nhật lại data-index và gắn lại các sự kiện Drag
+
+        // 3. ✨ Cập nhật lại data-index và gắn lại các sự kiện
         transports.forEach((img, idx) => {
             img.dataset.index = idx;
             
             img.addEventListener('dragstart', (e) => {
-                if (!isGameRunning || img.classList.contains('disabled') || img.dataset.placed === "true") {
+                if (img.classList.contains('disabled') || img.dataset.placed === "true") {
                     e.preventDefault();
                     return;
                 }
@@ -371,25 +310,21 @@
             img.addEventListener('dragend', ()=> img.classList.remove('dragging'));
         });
 
-        // 3. 🎯 Xử lý sự kiện thả
         zones.forEach(zone => {
             zone.addEventListener('dragover', e => e.preventDefault());
             zone.addEventListener('drop', (e) => {
                 e.preventDefault();
-                if (!isGameRunning) return;
-
                 const raw = e.dataTransfer.getData('text/plain');
                 let payload = null;
                 try { payload = JSON.parse(raw); } catch(err){ return; }
                 if (!payload) return;
                 const dragged = transports[payload.index];
-                if (!dragged || dragged.dataset.placed === "true" || dragged.classList.contains('disabled')) return;
+                if (!dragged) return;
 
-                if (payload.type === zone.dataset.type) {
+                if (payload.type === zone.dataset.type && dragged.dataset.placed !== "true") {
                     // --- KÉO ĐÚNG ---
                     const slot = zone.querySelector('.slot');
                     
-                    // Tạo bản sao ảnh đã thả để giữ ảnh gốc trong danh sách transports
                     const placedImage = dragged.cloneNode(true);
                     placedImage.classList.remove('transport');
                     placedImage.style.width = '72px';
@@ -397,13 +332,18 @@
                     placedImage.draggable = false;
                     slot.appendChild(placedImage);
                     
-                    dragged.style.display = 'none'; // Ẩn ảnh gốc dưới chân
+                    dragged.style.display = 'none';
                     dragged.dataset.placed = "true";
                     
                     score++;
-                    completedItems++; 
+                    completedItems++; // Tăng đếm đã xử lý
                     scoreEl.textContent = `Điểm: ${score}`;
                     correctSound.play().catch(()=>{});
+
+                    // 🏁 KIỂM TRA ĐIỀU KIỆN KẾT THÚC GAME
+                    if (completedItems === totalTransports) {
+                        endGame();
+                    }
 
                 } else {
                     // --- KÉO SAI ---
@@ -415,29 +355,17 @@
                     dragged.classList.add('disabled');
                     dragged.draggable = false;
                     
-                    completedItems++; 
-                }
-                
-                // 🏁 KIỂM TRA ĐIỀU KIỆN KẾT THÚC GAME
-                if (completedItems === totalTransports) {
-                    endGame();
+                    completedItems++; // Tăng đếm đã xử lý
+
+                    // 🏁 KIỂM TRA ĐIỀU KIỆN KẾT THÚC GAME
+                    if (completedItems === totalTransports) {
+                        endGame();
+                    }
                 }
             });
         });
-
-        // --- BẮT ĐẦU GAME & SỰ KIỆN GỬI KẾT QUẢ ---
-        
-        startTimer(); // Bắt đầu đồng hồ ngay khi trò chơi tải
-        
-        // Gắn sự kiện gửi kết quả cho nút
-        submitBtn.addEventListener('click', sendResults);
-
     })();
     </script>
 </body>
 </html>
-
-
-
-
 
