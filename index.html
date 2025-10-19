@@ -1,227 +1,302 @@
 <!DOCTYPE html>
 <html lang="vi">
 <head>
-    <meta charset="utf-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Game Kéo Thả Phương Tiện Giao Thông</title>
-    <style>
-        :root {
-            --accent: #4caf50;
-            --accent-dark: #388e3c;
-            --panel-bg: #e6f9ee;
-        }
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Game Kéo Thả Phương Tiện Giao Thông</title>
 
-        html, body {
-            margin: 0;
-            padding: 0;
-            width: 100vw;
-            height: 100vh;
-            overflow: hidden;
-        }
+<style>
+:root {
+    --accent: #4caf50;
+    --accent-dark: #388e3c;
+    --panel-bg: #e6f9ee;
+}
 
-        body {
-            font-family: Arial, Helvetica, sans-serif;
-            background: linear-gradient(#cfeefc, #ffffff 60%);
-            display: flex;
-            flex-direction: column;
-            align-items: stretch;
-        }
+/* ---------------- CẤU TRÚC CHUNG ---------------- */
+html, body {
+    margin: 0;
+    padding: 0;
+    width: 100vw;
+    height: 100vh;
+    overflow: hidden;
+}
+body {
+    font-family: Arial, Helvetica, sans-serif;
+    background: linear-gradient(#cfeefc, #ffffff 60%);
+    display: flex;
+    flex-direction: column;
+    align-items: stretch;
+}
+header {
+    background: #ff9800;
+    color: white;
+    padding: 14px 10px;
+    text-align: center;
+    font-size: 26px;
+    font-weight: 700;
+    letter-spacing: 1px;
+}
+#game-info {
+    display: flex;
+    justify-content: center;
+    gap: 20px;
+    margin: 12px auto;
+}
+#score, #timer {
+    background: var(--accent);
+    color: white;
+    padding: 8px 18px;
+    border-radius: 12px;
+    font-size: 20px;
+    box-shadow: 0 3px 8px rgba(0,0,0,0.12);
+    min-width: 150px; 
+    text-align: center;
+}
+#game {
+    flex: 1;
+    display: flex;
+    justify-content: space-around;
+    flex-wrap: wrap;
+    gap: 24px;
+    padding: 10px 30px;
+    box-sizing: border-box;
+    overflow-y: auto;
+}
+.drop-zone {
+    width: 360px;
+    height: 360px;
+    border: 4px dashed var(--accent);
+    border-radius: 18px;
+    background: rgba(255,255,255,0.9);
+    box-shadow: 0 6px 14px rgba(0,0,0,0.08);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 12px;
+    box-sizing: border-box;
+    transition: transform .18s ease, background .18s;
+}
+.drop-zone h3 {
+    margin: 4px 0 10px;
+    font-size: 20px;
+    color: #0b3d2e;
+    display:flex;
+    align-items:center;
+    gap:8px;
+}
+.drop-zone.correct { border-color: #00c853; background: #eaffea; }
+.drop-zone.wrong { border-color: #e53935; background: #ffecec; }
 
-        header {
-            background: #ff9800;
-            color: white;
-            padding: 14px 10px;
-            text-align: center;
-            font-size: 26px;
-            font-weight: 700;
-            letter-spacing: 1px;
-        }
+.slot {
+    flex: 1;
+    width: 100%;
+    display: grid;
+    grid-auto-flow: row;
+    grid-template-columns: repeat(auto-fill, minmax(70px, 1fr));
+    gap: 6px;
+    align-content: start;
+    justify-items: center;
+    padding: 6px;
+    box-sizing: border-box;
+    overflow-y: auto;
+}
+#transports {
+    display: flex;
+    flex-wrap: nowrap;
+    gap: 18px;
+    justify-content: center;
+    align-items: flex-end;
+    padding: 18px;
+    overflow-x: auto;
+    width: 100%;
+    box-sizing: border-box;
+}
+.transport {
+    width: 120px;
+    cursor: grab;
+    user-select: none;
+    transition: transform .12s ease, filter 0.3s ease, opacity 0.3s ease;
+}
+.transport:active { cursor: grabbing; }
+.transport.disabled {
+    filter: grayscale(100%);
+    opacity: 0.4;
+    cursor: not-allowed;
+    transform: none !important;
+}
+.slot img {
+    width: 72px;
+    height: 72px;
+    object-fit: contain;
+    border-radius: 6px;
+}
+footer {
+    background: #cfeef6;
+    padding: 18px;
+    box-shadow: 0 -4px 8px rgba(0,0,0,0.04);
+}
+.guide {
+    max-width: 980px;
+    margin: 0 auto;
+    background: #e8faf0;
+    border: 2px solid var(--accent);
+    color: #0b3d2e;
+    padding: 14px 18px;
+    border-radius: 12px;
+    font-weight: 600;
+    line-height: 1.5;
+}
 
-        /* CSS cho Game Info và Timer */
-        #game-info {
-            display: flex;
-            justify-content: center;
-            gap: 20px;
-            margin: 12px auto;
-        }
+/* ---------------- MÀN HÌNH GIỚI THIỆU (được làm đẹp hơn) ---------------- */
+#start-overlay {
+    position: fixed;
+    inset: 0;
+    background: linear-gradient(145deg, #fff8e1, #ffe0b2);
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    z-index: 9999;
+    text-align: center;
+    box-shadow: inset 0 0 60px rgba(0,0,0,0.2);
+    transition: opacity 1s ease, transform 1s ease;
+}
 
-        #score, #timer {
-            background: var(--accent);
-            color: white;
-            padding: 8px 18px;
-            border-radius: 12px;
-            font-size: 20px;
-            box-shadow: 0 3px 8px rgba(0,0,0,0.12);
-            min-width: 150px; 
-            text-align: center;
-        }
-        /* Hết CSS mới */
+/* Khung chính nổi bật, có hiệu ứng 3D */
+#intro-box {
+    background: linear-gradient(145deg, #ffffff, #fff3cd);
+    border: 4px solid #ff9800;
+    border-radius: 24px;
+    box-shadow: 0 12px 30px rgba(0,0,0,0.3), inset 0 0 15px rgba(255, 152, 0, 0.4);
+    padding: 40px 60px;
+    max-width: 700px;
+    transform: perspective(800px) rotateX(5deg);
+    animation: glow 2s infinite alternate;
+}
 
+@keyframes glow {
+    from { box-shadow: 0 12px 30px rgba(0,0,0,0.3), inset 0 0 15px rgba(255, 152, 0, 0.4); }
+    to { box-shadow: 0 16px 40px rgba(0,0,0,0.4), inset 0 0 25px rgba(255, 171, 64, 0.7); }
+}
 
-        #game {
-            flex: 1;
-            display: flex;
-            justify-content: space-around;
-            flex-wrap: wrap;
-            gap: 24px;
-            padding: 10px 30px;
-            box-sizing: border-box;
-            overflow-y: auto;
-        }
+#start-overlay.hidden {
+    opacity: 0;
+    transform: perspective(800px) rotateY(90deg);
+    pointer-events: none;
+}
+#start-overlay h1 {
+    font-size: 40px;
+    color: #ff5722;
+    text-shadow: 2px 2px 6px rgba(0,0,0,0.2);
+    margin-bottom: 20px;
+}
+#start-overlay p {
+    font-size: 20px;
+    color: #333;
+    max-width: 600px;
+    line-height: 1.6;
+    margin-bottom: 30px;
+}
+#start-btn {
+    background: linear-gradient(135deg, #4caf50, #2e7d32);
+    color: white;
+    font-size: 22px;
+    padding: 14px 50px;
+    border: none;
+    border-radius: 50px;
+    cursor: pointer;
+    box-shadow: 0 8px 20px rgba(0,0,0,0.3);
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+#start-btn:hover {
+    transform: scale(1.1);
+    box-shadow: 0 12px 30px rgba(0,0,0,0.4);
+}
 
-        .drop-zone {
-            width: 360px;
-            height: 360px;
-            border: 4px dashed var(--accent);
-            border-radius: 18px;
-            background: rgba(255,255,255,0.9);
-            box-shadow: 0 6px 14px rgba(0,0,0,0.08);
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            padding: 12px;
-            box-sizing: border-box;
-            transition: transform .18s ease, background .18s;
-        }
-
-        .drop-zone h3 {
-            margin: 4px 0 10px;
-            font-size: 20px;
-            color: #0b3d2e;
-            display:flex;
-            align-items:center;
-            gap:8px;
-        }
-
-        .drop-zone.correct { border-color: #00c853; background: #eaffea; }
-        .drop-zone.wrong { border-color: #e53935; background: #ffecec; }
-
-        .slot {
-            flex: 1;
-            width: 100%;
-            display: grid;
-            grid-auto-flow: row;
-            grid-template-columns: repeat(auto-fill, minmax(70px, 1fr));
-            gap: 6px;
-            align-content: start;
-            justify-items: center;
-            padding: 6px;
-            box-sizing: border-box;
-            overflow-y: auto;
-        }
-
-        #transports {
-            display: flex;
-            flex-wrap: nowrap;
-            gap: 18px;
-            justify-content: center;
-            align-items: flex-end;
-            padding: 18px;
-            overflow-x: auto;
-            width: 100%;
-            box-sizing: border-box;
-        }
-
-        .transport {
-            width: 120px;
-            height: auto;
-            cursor: grab;
-            user-select: none;
-            transition: transform .12s ease, filter 0.3s ease, opacity 0.3s ease;
-        }
-
-        .transport:active { cursor: grabbing; }
-
-        .transport.disabled {
-            filter: grayscale(100%);
-            opacity: 0.4;
-            cursor: not-allowed;
-            transform: none !important;
-        }
-
-        .slot img {
-            width: 72px;
-            height: 72px;
-            object-fit: contain;
-            border-radius: 6px;
-        }
-
-        footer {
-            background: #cfeef6;
-            padding: 18px;
-            box-shadow: 0 -4px 8px rgba(0,0,0,0.04);
-        }
-
-        .guide {
-            max-width: 980px;
-            margin: 0 auto;
-            background: #e8faf0;
-            border: 2px solid var(--accent);
-            color: #0b3d2e;
-            padding: 14px 18px;
-            border-radius: 12px;
-            font-weight: 600;
-            line-height: 1.5;
-        }
-
-        @media (max-width: 1280px) {
-            .drop-zone { width: 300px; height: 300px; }
-        }
-
-        @media (max-width: 900px) {
-            .drop-zone { width: 48%; height: 300px; }
-        }
-
-        @media (max-width: 520px) {
-            .drop-zone { width: 100%; height: 260px; }
-            .transport { width: 90px; }
-        }
-    </style>
+@media (max-width: 900px) {
+    .drop-zone { width: 48%; height: 300px; }
+}
+@media (max-width: 520px) {
+    .drop-zone { width: 100%; height: 260px; }
+    .transport { width: 90px; }
+}
+</style>
 </head>
 
 <body>
-    <header>🎮 KÉO THẢ PHƯƠNG TIỆN GIAO THÔNG 🎨</header>
-    <div id="game-info">
-        <div id="score">Điểm: 0</div>
-        <div id="timer">Thời gian: 00:00</div>
+<!-- PHẦN GIỚI THIỆU -->
+<div id="start-overlay">
+  <div id="intro-box">
+    <h1>🎮 HƯỚNG DẪN TRÒ CHƠI 🎯</h1>
+    <p>
+      Chào mừng các bạn đến với trò chơi <strong>"Kéo thả phương tiện giao thông"</strong>!<br><br>
+      🚗 Hãy kéo từng phương tiện vào đúng loại đường tương ứng (đường bộ, đường thủy, đường không, đường sắt).<br>
+      ✅ Mỗi hình đúng bạn sẽ được điểm thưởng — sai thì hình đó sẽ biến mất!<br><br>
+      Khi đã sẵn sàng, nhấn <strong>"BẮT ĐẦU TRÒ CHƠI"</strong> để bắt đầu nhé!
+    </p>
+    <button id="start-btn">🚀 BẮT ĐẦU TRÒ CHƠI</button>
+  </div>
+</div>
+
+<header>🎮 KÉO THẢ PHƯƠNG TIỆN GIAO THÔNG 🎨</header>
+<div id="game-info">
+    <div id="score">Điểm: 0</div>
+    <div id="timer">Thời gian: 00:00</div>
+</div>
+
+<main id="game">
+    <div class="drop-zone" data-type="duongkhong"><h3>✈️ Đường không</h3><div class="slot"></div></div>
+    <div class="drop-zone" data-type="duongbo"><h3>🚗 Đường bộ</h3><div class="slot"></div></div>
+    <div class="drop-zone" data-type="duongthuy"><h3>🚢 Đường thủy</h3><div class="slot"></div></div>
+    <div class="drop-zone" data-type="duongsat"><h3>🚆 Đường sắt</h3><div class="slot"></div></div>
+</main>
+
+<div id="transports">
+    <img src="may bay.png" class="transport" draggable="true" data-type="duongkhong" alt="Máy bay">
+    <img src="kinh khi cau.png" class="transport" draggable="true" data-type="duongkhong" alt="Khinh khí cầu">
+    <img src="oto con.png" class="transport" draggable="true" data-type="duongbo" alt="Ô tô">
+    <img src="xe may.png" class="transport" draggable="true" data-type="duongbo" alt="Xe máy">
+    <img src="xe dap.png" class="transport" draggable="true" data-type="duongbo" alt="Xe đạp">
+    <img src="xe cuu hoa.png" class="transport" draggable="true" data-type="duongbo" alt="Xe cứu hỏa">
+    <img src="xe cuu thuong.png" class="transport" draggable="true" data-type="duongbo" alt="Xe cứu thương">
+    <img src="tau ngam.png" class="transport" draggable="true" data-type="duongthuy" alt="Tàu ngầm">
+    <img src="tau thuy ok1.png" class="transport" draggable="true" data-type="duongthuy" alt="Tàu thủy">
+    <img src="thuyen buom.png" class="transport" draggable="true" data-type="duongthuy" alt="Thuyền buồm">
+    <img src="tau hoa.png" class="transport" draggable="true" data-type="duongsat" alt="Tàu hỏa">
+    <img src="tau dien.png" class="transport" draggable="true" data-type="duongsat" alt="Tàu điện">
+</div>
+
+<footer>
+    <div class="guide">
+        <strong>🕹️ Hướng dẫn:</strong> Kéo phương tiện vào đúng ô. Nếu thả sai, hình đó sẽ bị ẩn và không thể kéo lại.
     </div>
+</footer>
 
-    <main id="game">
-        <div class="drop-zone" data-type="duongkhong"><h3>✈️ Đường không</h3><div class="slot"></div></div>
-        <div class="drop-zone" data-type="duongbo"><h3>🚗 Đường bộ</h3><div class="slot"></div></div>
-        <div class="drop-zone" data-type="duongthuy"><h3>🚢 Đường thủy</h3><div class="slot"></div></div>
-        <div class="drop-zone" data-type="duongsat"><h3>🚆 Đường sắt</h3><div class="slot"></div></div>
-    </main>
+<audio id="correctSound" src="Dung.mp3"></audio>
+<audio id="wrongSound" src="Sai.mp3"></audio>
 
-    <div id="transports">
-        <img src="may bay.png" class="transport" draggable="true" data-type="duongkhong" alt="Máy bay">
-        <img src="kinh khi cau.png" class="transport" draggable="true" data-type="duongkhong" alt="Khinh khí cầu">
+<script>
+(function(){
+    const overlay = document.getElementById('start-overlay');
+    const startBtn = document.getElementById('start-btn');
 
-        <img src="oto con.png" class="transport" draggable="true" data-type="duongbo" alt="Ô tô">
-        <img src="xe may.png" class="transport" draggable="true" data-type="duongbo" alt="Xe máy">
-        <img src="xe dap.png" class="transport" draggable="true" data-type="duongbo" alt="Xe đạp">
-        <img src="xe cuu hoa.png" class="transport" draggable="true" data-type="duongbo" alt="Xe cứu hỏa">
-        <img src="xe cuu thuong.png" class="transport" draggable="true" data-type="duongbo" alt="Xe cứu thương">
+    // Ẩn toàn bộ nội dung trò chơi trước
+    document.querySelectorAll('header, #game-info, main, #transports, footer').forEach(el => {
+        el.style.display = 'none';
+    });
 
-        <img src="tau ngam.png" class="transport" draggable="true" data-type="duongthuy" alt="Tàu ngầm">
-        <img src="tau thuy ok1.png" class="transport" draggable="true" data-type="duongthuy" alt="Tàu thủy">
-        <img src="thuyen buom.png" class="transport" draggable="true" data-type="duongthuy" alt="Thuyền buồm">
+    startBtn.addEventListener('click', () => {
+        overlay.classList.add('hidden');
+        setTimeout(() => {
+            overlay.style.display = 'none';
+            document.querySelectorAll('header, #game-info, main, #transports, footer').forEach(el => {
+                el.style.display = '';
+            });
+            startGame();
+        }, 1000);
+    });
 
-        <img src="tau hoa.png" class="transport" draggable="true" data-type="duongsat" alt="Tàu hỏa">
-        <img src="tau dien.png" class="transport" draggable="true" data-type="duongsat" alt="Tàu điện">
-    </div>
-
-    <footer>
-        <div class="guide">
-            <strong>🕹️ Hướng dẫn:</strong> Kéo phương tiện vào đúng ô. Nếu thả sai, hình đó sẽ bị ẩn và không thể kéo lại.
-        </div>
-    </footer>
-
-    <audio id="correctSound" src="Dung.mp3"></audio>
-    <audio id="wrongSound" src="Sai.mp3"></audio>
-
-    <script>
-    (function(){
+    function startGame() {
         const transportsContainer = document.getElementById('transports');
         const transports = Array.from(document.querySelectorAll('.transport'));
         const zones = Array.from(document.querySelectorAll('.drop-zone'));
@@ -232,19 +307,14 @@
         
         let score = 0;
         const totalTransports = transports.length;
-        
         let time = 0;
         let timerInterval;
-        let completedItems = 0; // 💡 ĐẾM SỐ PHƯƠNG TIỆN ĐÃ XỬ LÝ (ĐÚNG HOẶC SAI)
-
-        // --- CHỨC NĂNG ĐỒNG HỒ ---
+        let completedItems = 0;
 
         function formatTime(totalSeconds) {
             const minutes = Math.floor(totalSeconds / 60);
             const seconds = totalSeconds % 60;
-            const paddedMinutes = String(minutes).padStart(2, '0');
-            const paddedSeconds = String(seconds).padStart(2, '0');
-            return `${paddedMinutes}:${paddedSeconds}`;
+            return `${String(minutes).padStart(2,'0')}:${String(seconds).padStart(2,'0')}`;
         }
 
         function startTimer() {
@@ -258,114 +328,79 @@
             clearInterval(timerInterval);
         }
 
-        // --- HÀM KẾT THÚC GAME VÀ THÔNG BÁO ---
         function endGame() {
             stopTimer();
             const finalMessage = score === totalTransports 
                 ? `🎉 CHÚC MỪNG! Bạn đạt điểm tối đa!`
                 : `✅ TRÒ CHƠI KẾT THÚC!`;
-                
             setTimeout(() => {
-                alert(`${finalMessage}
-Điểm số: ${score}/${totalTransports}
-Thời gian hoàn thành: ${formatTime(time)}`);
-            }, 100);
+                alert(`${finalMessage}\n\nĐiểm số: ${score}/${totalTransports}\nThời gian: ${formatTime(time)}`);
+            }, 200);
         }
 
-        // Bắt đầu đồng hồ ngay khi trò chơi tải
         startTimer();
 
-        // --- CHỨC NĂNG XÁO TRỘN ẢNH VÀ KÉO THẢ ---
-
-        /**
-         * Hàm xáo trộn mảng (Thuật toán Fisher-Yates)
-         */
-        function shuffleArray(array) {
-            for (let i = array.length - 1; i > 0; i--) {
-                const j = Math.floor(Math.random() * (i + 1));
-                [array[i], array[j]] = [array[j], array[i]];
+        function shuffleArray(array){
+            for(let i=array.length-1;i>0;i--){
+                const j=Math.floor(Math.random()*(i+1));
+                [array[i],array[j]]=[array[j],array[i]];
             }
         }
-
-        // 1. 🎲 Xáo trộn thứ tự các hình ảnh
         shuffleArray(transports);
+        transports.forEach(img=>transportsContainer.appendChild(img));
 
-        // 2. 🔄 Chèn các hình ảnh đã xáo trộn vào lại khu vực chứa
-        transports.forEach(img => {
-            transportsContainer.appendChild(img);
-        });
-
-        // 3. ✨ Cập nhật lại data-index và gắn lại các sự kiện
-        transports.forEach((img, idx) => {
-            img.dataset.index = idx;
-            
-            img.addEventListener('dragstart', (e) => {
-                if (img.classList.contains('disabled') || img.dataset.placed === "true") {
-                    e.preventDefault();
-                    return;
+        transports.forEach((img,idx)=>{
+            img.dataset.index=idx;
+            img.addEventListener('dragstart',e=>{
+                if(img.classList.contains('disabled')||img.dataset.placed==="true"){
+                    e.preventDefault(); return;
                 }
-                e.dataTransfer.setData('text/plain', JSON.stringify({index: idx, type: img.dataset.type}));
-                setTimeout(()=> img.classList.add('dragging'), 0);
+                e.dataTransfer.setData('text/plain',JSON.stringify({index:idx,type:img.dataset.type}));
+                setTimeout(()=>img.classList.add('dragging'),0);
             });
-            img.addEventListener('dragend', ()=> img.classList.remove('dragging'));
+            img.addEventListener('dragend',()=>img.classList.remove('dragging'));
         });
 
-        zones.forEach(zone => {
-            zone.addEventListener('dragover', e => e.preventDefault());
-            zone.addEventListener('drop', (e) => {
+        zones.forEach(zone=>{
+            zone.addEventListener('dragover',e=>e.preventDefault());
+            zone.addEventListener('drop',e=>{
                 e.preventDefault();
-                const raw = e.dataTransfer.getData('text/plain');
-                let payload = null;
-                try { payload = JSON.parse(raw); } catch(err){ return; }
-                if (!payload) return;
-                const dragged = transports[payload.index];
-                if (!dragged) return;
+                const raw=e.dataTransfer.getData('text/plain');
+                let payload=null;
+                try{payload=JSON.parse(raw);}catch(err){return;}
+                if(!payload)return;
+                const dragged=transports[payload.index];
+                if(!dragged)return;
 
-                if (payload.type === zone.dataset.type && dragged.dataset.placed !== "true") {
-                    // --- KÉO ĐÚNG ---
-                    const slot = zone.querySelector('.slot');
-                    
-                    const placedImage = dragged.cloneNode(true);
+                if(payload.type===zone.dataset.type&&dragged.dataset.placed!=="true"){
+                    const slot=zone.querySelector('.slot');
+                    const placedImage=dragged.cloneNode(true);
                     placedImage.classList.remove('transport');
-                    placedImage.style.width = '72px';
-                    placedImage.style.height = '72px';
-                    placedImage.draggable = false;
+                    placedImage.style.width='72px';
+                    placedImage.style.height='72px';
+                    placedImage.draggable=false;
                     slot.appendChild(placedImage);
-                    
-                    dragged.style.display = 'none';
-                    dragged.dataset.placed = "true";
-                    
+
+                    dragged.style.display='none';
+                    dragged.dataset.placed="true";
                     score++;
-                    completedItems++; // Tăng đếm đã xử lý
-                    scoreEl.textContent = `Điểm: ${score}`;
+                    completedItems++;
+                    scoreEl.textContent=`Điểm: ${score}`;
                     correctSound.play().catch(()=>{});
-
-                    // 🏁 KIỂM TRA ĐIỀU KIỆN KẾT THÚC GAME
-                    if (completedItems === totalTransports) {
-                        endGame();
-                    }
-
-                } else {
-                    // --- KÉO SAI ---
+                    if(completedItems===totalTransports)endGame();
+                }else{
                     wrongSound.play().catch(()=>{});
                     zone.classList.add('wrong');
-                    setTimeout(()=> zone.classList.remove('wrong'), 600);
-
-                    // ❌ Vô hiệu hóa ảnh sai
+                    setTimeout(()=>zone.classList.remove('wrong'),600);
                     dragged.classList.add('disabled');
-                    dragged.draggable = false;
-                    
-                    completedItems++; // Tăng đếm đã xử lý
-
-                    // 🏁 KIỂM TRA ĐIỀU KIỆN KẾT THÚC GAME
-                    if (completedItems === totalTransports) {
-                        endGame();
-                    }
+                    dragged.draggable=false;
+                    completedItems++;
+                    if(completedItems===totalTransports)endGame();
                 }
             });
         });
-    })();
-    </script>
+    }
+})();
+</script>
 </body>
 </html>
-
